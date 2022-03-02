@@ -14,10 +14,13 @@ import java.util.UUID;
 @Component
 public class FileMetaProvider implements IFileMetaProvider {
 
-
     private static final String GET_FILES_META = "select hash, filename from geek.file_info_metadata where sub_type = :subtype";
 
+    private static final String DELETE_FILE_BY_HASH_AND_NAME = "delete from geek.file_info_metadata where hash = :hash and filename = :filename";
+
     private static final String GET_FILE_PATH_BY_HASH = "select filename from geek.file_info_metadata where hash = :hash";
+
+    private static final String EXIST_FILE_BY_HASH_NAME = "select filename from geek.file_info_metadata where hash = :hash and filename = :filename";
 
     private static final String SAVE_FILE_META_DATA = "insert into geek.file_info_metadata (hash, filename, sub_type)\n" +
             "values (:hash, :finame, :subtype)";
@@ -39,12 +42,32 @@ public class FileMetaProvider implements IFileMetaProvider {
     }
 
     @Override
+    public String checkFileExists(UUID fileHash, String filename) {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(EXIST_FILE_BY_HASH_NAME, false)
+                    .addParameter("hash", fileHash)
+                    .addParameter("filename", filename)
+                    .executeScalar(String.class);
+        }
+    }
+
+    @Override
     public void saveFileMeta(UUID fileHash, String fileName, int sybType) {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(SAVE_FILE_META_DATA)
                     .addParameter("hash", fileHash)
                     .addParameter("finame", fileName)
                     .addParameter("subtype", sybType)
+                    .executeUpdate();
+        }
+    }
+
+    @Override
+    public void deleteFile(UUID fileHash, String filename) {
+        try (Connection connection = sql2o.open()) {
+            connection.createQuery(DELETE_FILE_BY_HASH_AND_NAME)
+                    .addParameter("hash", fileHash)
+                    .addParameter("filename", filename)
                     .executeUpdate();
         }
     }

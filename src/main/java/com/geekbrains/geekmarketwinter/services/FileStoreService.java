@@ -8,6 +8,7 @@ import com.geekbrains.geekmarketwinter.utils.HashHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -30,8 +31,27 @@ public class FileStoreService implements IFileStoreService {
         if (filename == null) {
             fileMetaProvider.saveFileMeta(md5, fileName, subFileType);
             filename = systemProvider.storeFile(content, md5, fileName);
+            return filename;
         }
+        filename = fileMetaProvider.checkFileExists(md5, fileName);
+        if (filename == null) {
+            fileMetaProvider.saveFileMeta(md5, fileName, subFileType);
+        }
+        return fileName;
+    }
 
+    @Override
+    public String deleteFile(UUID md5, String fileName) throws IOException {
+        String filename = fileMetaProvider.checkFileExists(md5, fileName);
+        if (filename != null) {
+            fileMetaProvider.deleteFile(md5, fileName);
+        }
+        filename = fileMetaProvider.checkFileExists(md5);
+        if (filename == null) {
+            String fileNameExtension = FilenameUtils.getExtension(fileName);
+            String file = String.format("%s.%s", md5, fileNameExtension);
+            systemProvider.deleteFile(file);
+        }
         return filename;
     }
 
@@ -40,14 +60,11 @@ public class FileStoreService implements IFileStoreService {
         String filename = fileMetaProvider.checkFileExists(md5);
         String ext = FilenameUtils.getExtension(filename);
         String fullFileName = md5.toString() + "." + ext;
-        return  systemProvider.getFile(fullFileName);
+        return systemProvider.getFile(fullFileName);
     }
 
     @Override
     public Collection<FileMetaDTO> getMetaFiles(int subtype) {
         return fileMetaProvider.getMetaFiles(subtype);
     }
-
-
-
 }
