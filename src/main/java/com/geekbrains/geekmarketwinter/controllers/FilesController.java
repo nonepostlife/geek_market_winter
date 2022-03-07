@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,6 +41,14 @@ public class FilesController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new ByteArrayResource(array));
+    }
+
+    @DeleteMapping("/deletefile")
+    public ResponseEntity<?> removeFile(
+            @RequestParam("hash") UUID hash,
+            @RequestParam("filename") String filename)
+            throws IOException {
+        return ResponseEntity.ok(fileStoreService.deleteFile(hash, filename));
     }
 
     @GetMapping("/getfiles")

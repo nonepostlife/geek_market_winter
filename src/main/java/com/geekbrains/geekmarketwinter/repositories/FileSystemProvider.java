@@ -60,7 +60,7 @@ public class FileSystemProvider implements IFileSystemProvider {
 
     @Override
     public void deleteFile(String fileHash) throws IOException {
-        Path path = Paths.get(fileHash);
+        Path path = Paths.get("Store", fileHash);
         if (Files.exists(path)) {
             Files.delete(path);
         }
